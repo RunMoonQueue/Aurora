@@ -18,6 +18,7 @@ package com.example.android.camera2basic
 
 import android.Manifest
 import android.app.AlertDialog
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -32,12 +33,16 @@ import android.hardware.camera2.CaptureRequest
 import android.hardware.camera2.CaptureResult
 import android.hardware.camera2.TotalCaptureResult
 import android.media.ImageReader
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
+import android.provider.MediaStore
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
+import android.support.v4.content.FileProvider
 import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
@@ -152,7 +157,17 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
      * still image is ready to be saved.
      */
     private val onImageAvailableListener = ImageReader.OnImageAvailableListener {
-        backgroundHandler?.post(ImageSaver(it.acquireNextImage(), file))
+        updateFileInfo()
+        var values = ContentValues()
+        values.put(MediaStore.Images.Media.TITLE, "ImageName");
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+        values.put(MediaStore.Images.Media.ORIENTATION, ORIENTATIONS.get(activity.windowManager.defaultDisplay.rotation))
+        values.put(MediaStore.Images.Media.CONTENT_TYPE, "image/jpeg")
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+        values.put("_data", file.absolutePath)
+        val cr = activity.contentResolver
+        cr.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+        backgroundHandler?.post(ImageSaver(context, it.acquireNextImage(), file))
     }
 
     /**
@@ -210,7 +225,7 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
                     val aeState = result.get(CaptureResult.CONTROL_AE_STATE)
                     if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
                         state = STATE_PICTURE_TAKEN
-                        // captureStillPicture()
+                        captureStillPicture()
                     }
                 }
             }
@@ -317,17 +332,20 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-//        val dir = Environment.getExternalStorageDirectory().absoluteFile
-//        val path = dir.path + "/DCIM/Aurora/"
-//        val dst = File(path)
-//        Log.d(TAG, "dst:$dst, exists?:${dst.exists()}")
-//        if(!dst.exists()) {
-//            val result = dst.mkdirs()
-//            Log.d(TAG, "mkdir result:$result")
-//        }
-//        file = File(path + System.currentTimeMillis() + ".jpg")
+        updateFileInfo()
+    }
+
+    private fun updateFileInfo() {
+        val dir = Environment.getExternalStorageDirectory().absoluteFile
+        val path = dir.path + "/DCIM/Aurora/"
+        val dst = File(path)
+        Log.d(TAG, "dst:$dst, exists?:${dst.exists()}")
+        if (!dst.exists()) {
+            val result = dst.mkdirs()
+            Log.d(TAG, "mkdir result:$result")
+        }
         val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmss")
-        file = File(activity.getExternalFilesDir(null), dateFormat.format(Date(System.currentTimeMillis())) + ".jpg")
+        file = File(path + dateFormat.format(Date(System.currentTimeMillis())) + ".jpg")
     }
 
     override fun onResume() {
@@ -344,13 +362,13 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
             textureView.surfaceTextureListener = surfaceTextureListener
         }
 
-        spenRemote!!.connect(context, object: SpenRemote.ConnectionResultCallback {
+        spenRemote!!.connect(context, object : SpenRemote.ConnectionResultCallback {
             override fun onSuccess(manager: SpenUnitManager) {
                 val buttonUnit = manager.getUnit(SpenUnit.TYPE_BUTTON)
                 manager.registerSpenEventListener({
-                val event = ButtonEvent(it)
-                    if (event.action == ButtonEvent.ACTION_DOWN){
-                       Log.d(TAG, "button down!!")
+                    val event = ButtonEvent(it)
+                    if (event.action == ButtonEvent.ACTION_DOWN) {
+                        Log.d(TAG, "button down!!")
                         lockFocus()
                     }
                 }, buttonUnit)
@@ -651,7 +669,7 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
     }
 
     private fun updateView() {
-        if(!isViewCreated) return
+        if (!isViewCreated) return
 
         try {
             setInfo()
@@ -843,9 +861,11 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
         when (view.id) {
             R.id.sujeong -> {
                 Log.d(TAG, "sujeong click")
-                val intent = Intent(Intent.ACTION_GET_CONTENT)
-                intent.type = "image/*"
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID+".provider", file), "image/*")
+                }
                 startActivity(intent)
+                Log.d(TAG, "sujeong uri :${FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", file)} ")
             }
             R.id.picture -> lockFocus()
             R.id.info -> {
