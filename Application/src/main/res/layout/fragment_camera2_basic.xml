@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+ Copyright 2014 The Android Open Source Project
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.example.android.camera2basic.AutoFitTextureView
+        android:id="@+id/texture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/iso_text"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginBottom="10dp"
+        android:text="ISO"
+        android:textColor="@android:color/white"
+        android:textSize="15dp"
+        app:layout_constraintBottom_toTopOf="@+id/exposure_text"
+        app:layout_constraintEnd_toStartOf="@id/iso_progress"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="ISO" />
+
+    <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
+        android:id="@+id/iso_progress"
+        android:layout_width="250dp"
+        android:layout_height="8dp"
+        android:layout_marginHorizontal="15dp"
+        android:layout_marginBottom="10dp"
+        app:dsb_thumbSize="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/exposure_progress"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/iso_text" />
+
+    <TextView
+        android:id="@+id/exposure_text"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginBottom="5dp"
+        android:text="Exposure Time"
+        android:textColor="@android:color/white"
+        android:textSize="15dp"
+        app:layout_constraintBottom_toTopOf="@+id/manual_text"
+        app:layout_constraintEnd_toStartOf="@id/exposure_progress"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Exposure time" />
+
+    <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
+        android:id="@+id/exposure_progress"
+        android:layout_width="250dp"
+        android:layout_height="8dp"
+        android:layout_marginHorizontal="15dp"
+        android:layout_marginBottom="10dp"
+        app:dsb_thumbSize="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/manual_progress"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/exposure_text" />
+
+    <TextView
+        android:id="@+id/manual_text"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginBottom="11dp"
+        android:text="Manual Mode"
+        android:textColor="@android:color/white"
+        android:textSize="15dp"
+        app:layout_constraintBottom_toTopOf="@+id/control"
+        app:layout_constraintEnd_toStartOf="@id/manual_progress"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Manual Mode" />
+
+    <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
+        android:id="@+id/manual_progress"
+        android:layout_width="250dp"
+        android:layout_height="8dp"
+        android:layout_marginHorizontal="15dp"
+        android:layout_marginBottom="15dp"
+        app:dsb_thumbSize="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/control"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/manual_text" />
+
+    <FrameLayout
+        android:id="@+id/control"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/frame_height"
+        android:background="@color/control_background"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/sujeong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|start"
+            android:layout_marginStart="50dp"
+            android:src="@drawable/ic_picture_in_picture_alt_black_24dp" />
+
+        <ImageView
+            android:id="@+id/picture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/baseline_photo_camera_black_48dp" />
+
+        <ImageButton
+            android:id="@+id/info"
+            style="@android:style/Widget.Material.Light.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginEnd="30dp"
+            android:contentDescription="@string/description_info"
+            android:src="@drawable/ic_info_outline_black_24dp" />
+
+    </FrameLayout>
+
+</android.support.constraint.ConstraintLayout>
