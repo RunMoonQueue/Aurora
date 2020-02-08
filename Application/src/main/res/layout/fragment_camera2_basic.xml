@@ -134,7 +134,7 @@
             android:layout_gravity="center_vertical|end"
             android:layout_marginEnd="30dp"
             android:contentDescription="@string/description_info"
-            android:src="@drawable/ic_info_outline_black_24dp" />
+            android:src="@drawable/ic_repeat_black_24dp" />
 
     </FrameLayout>
 

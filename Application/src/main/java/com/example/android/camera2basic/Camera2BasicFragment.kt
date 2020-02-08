@@ -17,9 +17,9 @@
 package com.example.android.camera2basic
 
 import android.Manifest
-import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -33,7 +33,6 @@ import android.hardware.camera2.CaptureRequest
 import android.hardware.camera2.CaptureResult
 import android.hardware.camera2.TotalCaptureResult
 import android.media.ImageReader
-import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
@@ -43,6 +42,7 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
+import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
@@ -51,9 +51,15 @@ import android.view.Surface
 import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
+import biz.kasual.materialnumberpicker.MaterialNumberPicker
 import com.samsung.android.sdk.penremote.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
 import java.io.File
+import java.lang.Thread.sleep
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -274,6 +280,8 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
 
     private var spenRemote: SpenRemote? = null
 
+    private var repeatCount : Int = 1
+
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
                               savedInstanceState: Bundle?
@@ -339,7 +347,6 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
         val dir = Environment.getExternalStorageDirectory().absoluteFile
         val path = dir.path + "/DCIM/Aurora/"
         val dst = File(path)
-        Log.d(TAG, "dst:$dst, exists?:${dst.exists()}")
         if (!dst.exists()) {
             val result = dst.mkdirs()
             Log.d(TAG, "mkdir result:$result")
@@ -819,8 +826,20 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
                                                 request: CaptureRequest,
                                                 result: TotalCaptureResult) {
                     activity.showToast("Saved: $file")
-                    Log.d(TAG, file.toString())
-                    unlockFocus()
+                    repeatCount--
+                    Log.d(TAG, "$file, repeatCount: $repeatCount")
+                    if (repeatCount <= 0) {
+                        unlockFocus()
+                        repeatCount = 1
+                    }
+                    else {
+                        GlobalScope.launch(Dispatchers.Main) {
+                            withContext(Dispatchers.Main){
+                                sleep(1000)
+                            }
+                            lockFocus()
+                        }
+                    }
                 }
             }
 
@@ -870,9 +889,24 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
             R.id.picture -> lockFocus()
             R.id.info -> {
                 if (activity != null) {
-                    AlertDialog.Builder(activity)
-                            .setMessage(R.string.intro_message)
-                            .setPositiveButton(android.R.string.ok, null)
+                    val numberPicker = MaterialNumberPicker.Builder(context)
+                            .minValue(1)
+                            .maxValue(50)
+                            .defaultValue(1)
+                            .backgroundColor(Color.WHITE)
+                            .separatorColor(Color.TRANSPARENT)
+                            .textColor(Color.BLACK)
+                            .textSize(20f)
+                            .enableFocusability(false)
+                            .wrapSelectorWheel(true)
+                            .build()
+                    AlertDialog.Builder(context)
+                            .setTitle("연속 촬영")
+                            .setView(numberPicker)
+                            .setPositiveButton(getString(android.R.string.ok)) { _, _ ->
+                                repeatCount = numberPicker.value
+                                Log.d(TAG, "연속촬영 선택값: ${numberPicker.value}")
+                            }
                             .show()
                 }
             }
